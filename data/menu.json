@@ -1,0 +1,981 @@
+[
+  {
+    "id": "simply-veg",
+    "title": "Simply Veg",
+    "desc": "Everyday classics, done right",
+    "items": [
+      {
+        "id": "simply-veg-0",
+        "name": "Veg Paneer Pizza",
+        "size": "Small (7″)",
+        "price": 130,
+        "desc": "Juicy paneer with cheese dressing",
+        "image": "/uploads/1785673967996-aa6fdc4f.jpg"
+      },
+      {
+        "id": "simply-veg-1",
+        "name": "Veg Paneer Pizza",
+        "size": "Medium (10″)",
+        "price": 260,
+        "desc": "Juicy paneer with cheese dressing",
+        "image": ""
+      },
+      {
+        "id": "simply-veg-2",
+        "name": "Veg Paneer Pizza",
+        "size": "Large (13″)",
+        "price": 450,
+        "desc": "Juicy paneer with cheese dressing",
+        "image": ""
+      },
+      {
+        "id": "simply-veg-3",
+        "name": "Veg Corn Pizza",
+        "size": "Small (7″)",
+        "price": 130,
+        "desc": "Sweet & juicy sweet corn with cheese",
+        "image": ""
+      },
+      {
+        "id": "simply-veg-4",
+        "name": "Veg Corn Pizza",
+        "size": "Medium (10″)",
+        "price": 260,
+        "desc": "Sweet & juicy sweet corn with cheese",
+        "image": ""
+      },
+      {
+        "id": "simply-veg-5",
+        "name": "Veg Corn Pizza",
+        "size": "Large (13″)",
+        "price": 450,
+        "desc": "Sweet & juicy sweet corn with cheese",
+        "image": ""
+      },
+      {
+        "id": "simply-veg-6",
+        "name": "Veg Onion Pizza",
+        "size": "Medium (10″)",
+        "price": 260,
+        "desc": "Crunchy onion with cheese dressing",
+        "image": ""
+      },
+      {
+        "id": "simply-veg-7",
+        "name": "Veg Onion Pizza",
+        "size": "Large (13″)",
+        "price": 450,
+        "desc": "Crunchy onion with cheese dressing",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "veg-favourite",
+    "title": "Veg Favourite",
+    "desc": "Guest-loved, ordered on repeat",
+    "items": [
+      {
+        "id": "veg-favourite-0",
+        "name": "Simply Fresh Veggie",
+        "size": "Small (7″)",
+        "price": 180,
+        "desc": "Onion, capsicum, tomato with cheese",
+        "image": ""
+      },
+      {
+        "id": "veg-favourite-1",
+        "name": "Simply Fresh Veggie",
+        "size": "Medium (10″)",
+        "price": 360,
+        "desc": "Onion, capsicum, tomato with cheese",
+        "image": ""
+      },
+      {
+        "id": "veg-favourite-2",
+        "name": "Simply Fresh Veggie",
+        "size": "Large (13″)",
+        "price": 480,
+        "desc": "Onion, capsicum, tomato with cheese",
+        "image": ""
+      },
+      {
+        "id": "veg-favourite-3",
+        "name": "Classic Margherita",
+        "size": "Small",
+        "price": 180,
+        "desc": "Really cheesy, tomato treat",
+        "image": ""
+      },
+      {
+        "id": "veg-favourite-4",
+        "name": "Classic Margherita",
+        "size": "Medium",
+        "price": 360,
+        "desc": "Really cheesy, tomato treat",
+        "image": ""
+      },
+      {
+        "id": "veg-favourite-5",
+        "name": "Classic Margherita",
+        "size": "Large",
+        "price": 480,
+        "desc": "Really cheesy, tomato treat",
+        "image": ""
+      },
+      {
+        "id": "veg-favourite-6",
+        "name": "Smoky Paneer Pizza",
+        "size": "Small (7″)",
+        "price": 180,
+        "desc": "Juicy paneer, capsicum & red paprika",
+        "image": ""
+      },
+      {
+        "id": "veg-favourite-7",
+        "name": "Smoky Paneer Pizza",
+        "size": "Medium (10″)",
+        "price": 360,
+        "desc": "Juicy paneer, capsicum & red paprika",
+        "image": ""
+      },
+      {
+        "id": "veg-favourite-8",
+        "name": "Smoky Paneer Pizza",
+        "size": "Large (13″)",
+        "price": 480,
+        "desc": "Juicy paneer, capsicum & red paprika",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "veg-treat",
+    "title": "Veg Treat",
+    "desc": "A little bolder, a little spicier",
+    "items": [
+      {
+        "id": "veg-treat-0",
+        "name": "Pepper Paneer Pizza",
+        "size": "Small (7″)",
+        "price": 260,
+        "desc": "Paneer, green capsicum, red paprika",
+        "image": ""
+      },
+      {
+        "id": "veg-treat-1",
+        "name": "Corn Classic Pizza",
+        "size": "Small (7″)",
+        "price": 260,
+        "desc": "Sweet corn combination with baby corn",
+        "image": ""
+      },
+      {
+        "id": "veg-treat-2",
+        "name": "Corn Classic Pizza",
+        "size": "Medium (10″)",
+        "price": 470,
+        "desc": "Sweet corn combination with baby corn",
+        "image": ""
+      },
+      {
+        "id": "veg-treat-3",
+        "name": "Corn Classic Pizza",
+        "size": "Large (13″)",
+        "price": 620,
+        "desc": "Sweet corn combination with baby corn",
+        "image": ""
+      },
+      {
+        "id": "veg-treat-4",
+        "name": "Tandoori Veggie Pizza",
+        "size": "Small (7″)",
+        "price": 260,
+        "desc": "Onion, green capsicum, tomato, mushroom",
+        "image": ""
+      },
+      {
+        "id": "veg-treat-5",
+        "name": "Tandoori Veggie Pizza",
+        "size": "Medium (10″)",
+        "price": 470,
+        "desc": "Onion, green capsicum, tomato, mushroom",
+        "image": ""
+      },
+      {
+        "id": "veg-treat-6",
+        "name": "Tandoori Veggie Pizza",
+        "size": "Large (13″)",
+        "price": 620,
+        "desc": "Onion, green capsicum, tomato, mushroom",
+        "image": ""
+      },
+      {
+        "id": "veg-treat-7",
+        "name": "Chilli Paneer Pizza",
+        "size": "Medium (10″)",
+        "price": 470,
+        "desc": "Onion, paneer, tomato, capsicum",
+        "image": ""
+      },
+      {
+        "id": "veg-treat-8",
+        "name": "Classic Tangy Paneer Pizza",
+        "size": "Large (13″)",
+        "price": 630,
+        "desc": "Capsicum, paneer, jalapeno, onion",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "indian-classic",
+    "title": "Indian Classic",
+    "desc": "Rajasthan on a plate, wrapped in dough",
+    "items": [
+      {
+        "id": "indian-classic-0",
+        "name": "Classic Tangy Paneer Pizza",
+        "size": "Small (7″)",
+        "price": 260,
+        "desc": "Capsicum, paneer, jalapeno, onion",
+        "image": ""
+      },
+      {
+        "id": "indian-classic-1",
+        "name": "Classic Tangy Paneer Pizza",
+        "size": "Medium (10″)",
+        "price": 470,
+        "desc": "Capsicum, paneer, jalapeno, onion",
+        "image": ""
+      },
+      {
+        "id": "indian-classic-2",
+        "name": "Paneer Makhani Pizza",
+        "size": "Small (7″)",
+        "price": 260,
+        "desc": "Onion, capsicum, paneer with magic masala",
+        "image": ""
+      },
+      {
+        "id": "indian-classic-3",
+        "name": "Paneer Makhani Pizza",
+        "size": "Medium (10″)",
+        "price": 470,
+        "desc": "Onion, capsicum, paneer & corn",
+        "image": ""
+      },
+      {
+        "id": "indian-classic-4",
+        "name": "Paneer Makhani Pizza",
+        "size": "Large (13″)",
+        "price": 600,
+        "desc": "Onion, capsicum, paneer & corn",
+        "image": ""
+      },
+      {
+        "id": "indian-classic-5",
+        "name": "Smoky Garlic Paneer Pizza",
+        "size": "Small 🌶",
+        "price": 260,
+        "desc": "Onion, tomato, red paprika, paneer",
+        "image": ""
+      },
+      {
+        "id": "indian-classic-6",
+        "name": "Chilli Paneer Pizza",
+        "size": "Small (7″)",
+        "price": 260,
+        "desc": "Paneer, onion, tomato, capsicum",
+        "image": ""
+      },
+      {
+        "id": "indian-classic-7",
+        "name": "Chilli Paneer Pizza",
+        "size": "Large (13″)",
+        "price": 630,
+        "desc": "Paneer, onion, tomato, capsicum",
+        "image": ""
+      },
+      {
+        "id": "indian-classic-8",
+        "name": "Tandoori Paneer Pizza",
+        "size": "Small (7″)",
+        "price": 260,
+        "desc": "Capsicum, paneer, red paprika on tandoori base",
+        "image": ""
+      },
+      {
+        "id": "indian-classic-9",
+        "name": "Tandoori Paneer Pizza",
+        "size": "Medium (10″)",
+        "price": 470,
+        "desc": "Capsicum, paneer, red paprika",
+        "image": ""
+      },
+      {
+        "id": "indian-classic-10",
+        "name": "Tandoori Paneer Pizza",
+        "size": "Large (13″)",
+        "price": 630,
+        "desc": "Capsicum, paneer, red paprika",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "veg-supreme",
+    "title": "Veg Supreme",
+    "desc": "Loaded, generous, built for sharing",
+    "items": [
+      {
+        "id": "veg-supreme-0",
+        "name": "Papa Farm Pizza",
+        "size": "Small (7″)",
+        "price": 280,
+        "desc": "Onion, capsicum, corn, mushroom",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-1",
+        "name": "Papa Farm Pizza",
+        "size": "Medium (10″)",
+        "price": 490,
+        "desc": "Onion, capsicum, corn, mushroom",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-2",
+        "name": "Papa Farm Pizza",
+        "size": "Large (13″)",
+        "price": 680,
+        "desc": "Onion, capsicum, corn, mushroom",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-3",
+        "name": "Veggie Special Pizza",
+        "size": "Small (7″)",
+        "price": 280,
+        "desc": "Onion, red capsicum, green capsicum",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-4",
+        "name": "Veggie Special Pizza",
+        "size": "Medium (10″)",
+        "price": 490,
+        "desc": "Onion, red capsicum, green capsicum",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-5",
+        "name": "Veggie Special Pizza",
+        "size": "Large (13″)",
+        "price": 680,
+        "desc": "Onion, red capsicum, green capsicum",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-6",
+        "name": "Papa Super Veggie Pizza",
+        "size": "Small",
+        "price": 280,
+        "desc": "Onion, capsicum, corn, mushroom, black olive",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-7",
+        "name": "Papa Super Veggie Pizza",
+        "size": "Medium",
+        "price": 490,
+        "desc": "Onion, capsicum, corn, mushroom, black olive",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-8",
+        "name": "Papa Super Veggie Pizza",
+        "size": "Large",
+        "price": 680,
+        "desc": "Onion, capsicum, corn, mushroom, black olive",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-9",
+        "name": "Loaded Veggie Special Pizza",
+        "size": "Small",
+        "price": 280,
+        "desc": "Capsicum, baby corn, black olive, corn",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-10",
+        "name": "Loaded Veggie Special Pizza",
+        "size": "Medium",
+        "price": 490,
+        "desc": "Capsicum, baby corn, black olive, corn",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-11",
+        "name": "Loaded Veggie Special Pizza",
+        "size": "Large",
+        "price": 680,
+        "desc": "Capsicum, baby corn, black olive, corn",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-12",
+        "name": "Hot Pepper Pizza",
+        "size": "Small 🌶🌶",
+        "price": 280,
+        "desc": "Green capsicum, jalapeno, green chilli",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-13",
+        "name": "Hot Pepper Pizza",
+        "size": "Medium 🌶🌶",
+        "price": 490,
+        "desc": "Green capsicum, jalapeno, green chilli",
+        "image": ""
+      },
+      {
+        "id": "veg-supreme-14",
+        "name": "Hot Pepper Pizza",
+        "size": "Large 🌶🌶",
+        "price": 680,
+        "desc": "Green capsicum, jalapeno, green chilli",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "western-veggie",
+    "title": "Western Veggie",
+    "desc": "Continental favourites, our way",
+    "items": [
+      {
+        "id": "western-veggie-0",
+        "name": "Classic Western Pizza",
+        "size": "Small (7″)",
+        "price": 260,
+        "desc": "Baby corn, red paprika, black olive",
+        "image": ""
+      },
+      {
+        "id": "western-veggie-1",
+        "name": "Classic Western Pizza",
+        "size": "Medium (10″)",
+        "price": 470,
+        "desc": "Baby corn, red paprika, black olive",
+        "image": ""
+      },
+      {
+        "id": "western-veggie-2",
+        "name": "Classic Western Pizza",
+        "size": "Large (13″)",
+        "price": 630,
+        "desc": "Baby corn, red paprika, black olive",
+        "image": ""
+      },
+      {
+        "id": "western-veggie-3",
+        "name": "American Style Cheesy Pizza",
+        "size": "Small",
+        "price": 260,
+        "desc": "Flavoured cheesy sauce",
+        "image": ""
+      },
+      {
+        "id": "western-veggie-4",
+        "name": "American Style Cheesy Pizza",
+        "size": "Medium",
+        "price": 470,
+        "desc": "Flavoured cheesy sauce",
+        "image": ""
+      },
+      {
+        "id": "western-veggie-5",
+        "name": "Mexican Wonder Pizza",
+        "size": "Small (7″)",
+        "price": 260,
+        "desc": "Red capsicum, onion, red paprika, jalapeno",
+        "image": ""
+      },
+      {
+        "id": "western-veggie-6",
+        "name": "Mexican Wonder Pizza",
+        "size": "Medium",
+        "price": 470,
+        "desc": "Red capsicum, onion, red paprika, jalapeno",
+        "image": ""
+      },
+      {
+        "id": "western-veggie-7",
+        "name": "Mexican Green Wave Pizza",
+        "size": "Large",
+        "price": 630,
+        "desc": "Red capsicum, onion, red paprika, jalapeno",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "pasta",
+    "title": "Choose Your Pasta",
+    "desc": "Slow sauces, twirled fresh",
+    "items": [
+      {
+        "id": "pasta-0",
+        "name": "Crispy Crunch Pasta",
+        "size": "Small",
+        "price": 100,
+        "desc": "Red sauce with onion, capsicum & jalapeno",
+        "image": ""
+      },
+      {
+        "id": "pasta-1",
+        "name": "Crispy Crunch Pasta",
+        "size": "Full",
+        "price": 160,
+        "desc": "Red sauce with onion, capsicum & jalapeno",
+        "image": ""
+      },
+      {
+        "id": "pasta-2",
+        "name": "Creamy Alfredo White Pasta",
+        "size": "Small",
+        "price": 100,
+        "desc": "A blend of Italian flavours",
+        "image": ""
+      },
+      {
+        "id": "pasta-3",
+        "name": "Creamy Alfredo White Pasta",
+        "size": "Full",
+        "price": 160,
+        "desc": "A blend of Italian flavours",
+        "image": ""
+      },
+      {
+        "id": "pasta-4",
+        "name": "Cheesy Tomato Pasta",
+        "size": "Full",
+        "price": 160,
+        "desc": "A perfect blend of Indian flavours",
+        "image": ""
+      },
+      {
+        "id": "pasta-5",
+        "name": "Tandoori Pasta",
+        "size": "Small",
+        "price": 100,
+        "desc": "Tandoori sauce with onion, capsicum",
+        "image": ""
+      },
+      {
+        "id": "pasta-6",
+        "name": "Tandoori Pasta",
+        "size": "Full",
+        "price": 160,
+        "desc": "Tandoori sauce with onion, capsicum",
+        "image": ""
+      },
+      {
+        "id": "pasta-7",
+        "name": "Tandoori Paneer Pasta",
+        "size": "Small",
+        "price": 100,
+        "desc": "Blend of Indian flavours & pasta",
+        "image": ""
+      },
+      {
+        "id": "pasta-8",
+        "name": "Tandoori Paneer Pasta",
+        "size": "Full",
+        "price": 160,
+        "desc": "Blend of Indian flavours & pasta",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "pizza-sandwich",
+    "title": "Pizza Sandwich",
+    "desc": "Griddle-pressed, pizza in every bite",
+    "items": [
+      {
+        "id": "pizza-sandwich-0",
+        "name": "Masala Paneer Pizza Sandwich",
+        "size": "",
+        "price": 130,
+        "desc": "Capsicum, onion, paneer on sandwich bread",
+        "image": ""
+      },
+      {
+        "id": "pizza-sandwich-1",
+        "name": "Smoky Chilli Garlic Pizza Sandwich",
+        "size": "",
+        "price": 130,
+        "desc": "Capsicum, jalapeno, red paprika",
+        "image": ""
+      },
+      {
+        "id": "pizza-sandwich-2",
+        "name": "Tandoori Paneer Pizza Sandwich",
+        "size": "",
+        "price": 130,
+        "desc": "Capsicum, onion, paneer",
+        "image": ""
+      },
+      {
+        "id": "pizza-sandwich-3",
+        "name": "Classic Pizza Sandwich",
+        "size": "",
+        "price": 120,
+        "desc": "Capsicum, corn, tomato",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "garlic-bread",
+    "title": "Garlic Bread",
+    "desc": "Baked fresh, straight from the oven",
+    "items": [
+      {
+        "id": "garlic-bread-0",
+        "name": "Smokd Spice Paneer Garlic Bread",
+        "size": "",
+        "price": 180,
+        "desc": "Freshly baked spicy garlic bread",
+        "image": ""
+      },
+      {
+        "id": "garlic-bread-1",
+        "name": "Garlic Bread Stick",
+        "size": "",
+        "price": 100,
+        "desc": "Freshly baked garlic bread stick",
+        "image": ""
+      },
+      {
+        "id": "garlic-bread-2",
+        "name": "Cheesy Lava Garlic Bread",
+        "size": "",
+        "price": 170,
+        "desc": "Baked to perfection with molten cheese",
+        "image": ""
+      },
+      {
+        "id": "garlic-bread-3",
+        "name": "Spicy Paneer Stuffed Garlic Bread",
+        "size": "",
+        "price": 150,
+        "desc": "Freshly baked, stuffed",
+        "image": ""
+      },
+      {
+        "id": "garlic-bread-4",
+        "name": "Corn Jalapeno Stuffed Garlic Bread",
+        "size": "",
+        "price": 140,
+        "desc": "Freshly baked with cheese",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "burgers",
+    "title": "Burgers",
+    "desc": "Crisp patties, toasted buns",
+    "items": [
+      {
+        "id": "burgers-0",
+        "name": "Spicy Aloo Tikki Burger",
+        "size": "",
+        "price": 80,
+        "desc": "Crispy aloo burger range",
+        "image": ""
+      },
+      {
+        "id": "burgers-1",
+        "name": "Tandoori Aloo Burger",
+        "size": "",
+        "price": 70,
+        "desc": "Crispy aloo burger range",
+        "image": ""
+      },
+      {
+        "id": "burgers-2",
+        "name": "Crispy Aloo Tikki Burger",
+        "size": "",
+        "price": 50,
+        "desc": "Crispy aloo burger range",
+        "image": ""
+      },
+      {
+        "id": "burgers-3",
+        "name": "Classic Pizza Burger",
+        "size": "",
+        "price": 120,
+        "desc": "Oven-baked buns with cheese, capsicum",
+        "image": ""
+      },
+      {
+        "id": "burgers-4",
+        "name": "Cheesy Pizza Burger",
+        "size": "",
+        "price": 130,
+        "desc": "Oven-baked buns with cheese, paneer",
+        "image": ""
+      },
+      {
+        "id": "burgers-5",
+        "name": "Spicy Veggie Burger",
+        "size": "",
+        "price": 80,
+        "desc": "Veggie patty burger",
+        "image": ""
+      },
+      {
+        "id": "burgers-6",
+        "name": "Tandoori Veggie Burger",
+        "size": "",
+        "price": 80,
+        "desc": "Veggie patty burger",
+        "image": ""
+      },
+      {
+        "id": "burgers-7",
+        "name": "Crispy Veggie Burger",
+        "size": "",
+        "price": 70,
+        "desc": "Veggie patty burger",
+        "image": ""
+      },
+      {
+        "id": "burgers-8",
+        "name": "Double Patty Veggie Burger",
+        "size": "",
+        "price": 130,
+        "desc": "Double veggie patty",
+        "image": ""
+      },
+      {
+        "id": "burgers-9",
+        "name": "Tandoori Paneer Burger",
+        "size": "",
+        "price": 110,
+        "desc": "Paneer patty burger",
+        "image": ""
+      },
+      {
+        "id": "burgers-10",
+        "name": "Super Paneer Burger",
+        "size": "",
+        "price": 130,
+        "desc": "Paneer patty burger",
+        "image": ""
+      },
+      {
+        "id": "burgers-11",
+        "name": "Crispy Paneer Burger",
+        "size": "",
+        "price": 100,
+        "desc": "Paneer patty burger",
+        "image": ""
+      },
+      {
+        "id": "burgers-12",
+        "name": "Double Patty Paneer Burger",
+        "size": "",
+        "price": 150,
+        "desc": "Double paneer patty",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "fries",
+    "title": "Fries & Sides",
+    "desc": "For the table, while you wait",
+    "items": [
+      {
+        "id": "fries-0",
+        "name": "Plain Salted Fries",
+        "size": "Small",
+        "price": 90,
+        "desc": "Classic salted fries",
+        "image": ""
+      },
+      {
+        "id": "fries-1",
+        "name": "Plain Salted Fries",
+        "size": "Large",
+        "price": 150,
+        "desc": "Classic salted fries",
+        "image": ""
+      },
+      {
+        "id": "fries-2",
+        "name": "Peri Peri Fries",
+        "size": "Small 🌶",
+        "price": 100,
+        "desc": "Tossed in peri peri seasoning",
+        "image": ""
+      },
+      {
+        "id": "fries-3",
+        "name": "Peri Peri Fries",
+        "size": "Large 🌶",
+        "price": 180,
+        "desc": "Tossed in peri peri seasoning",
+        "image": ""
+      },
+      {
+        "id": "fries-4",
+        "name": "Crispy Spring Roll",
+        "size": "Large",
+        "price": 190,
+        "desc": "Golden fried, served hot",
+        "image": ""
+      },
+      {
+        "id": "fries-5",
+        "name": "Crispy Spring Roll",
+        "size": "Regular",
+        "price": 120,
+        "desc": "Golden fried, served hot",
+        "image": ""
+      },
+      {
+        "id": "fries-6",
+        "name": "Crispy Potato Pops",
+        "size": "Half",
+        "price": 100,
+        "desc": "Bite-sized crispy potato pops",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "shakes",
+    "title": "Shakes & Cold Coffee",
+    "desc": "Thick, cold, and worth the wait",
+    "items": [
+      {
+        "id": "shakes-0",
+        "name": "Frappe Coffee",
+        "size": "",
+        "price": 90,
+        "desc": "Chilled coffee blend",
+        "image": ""
+      },
+      {
+        "id": "shakes-1",
+        "name": "Choco Shake",
+        "size": "",
+        "price": 90,
+        "desc": "Rich chocolate shake",
+        "image": ""
+      },
+      {
+        "id": "shakes-2",
+        "name": "Crunt The Black Shake",
+        "size": "",
+        "price": 100,
+        "desc": "House specialty shake",
+        "image": ""
+      },
+      {
+        "id": "shakes-3",
+        "name": "Scouch The Butter Shake",
+        "size": "",
+        "price": 90,
+        "desc": "House specialty shake",
+        "image": ""
+      },
+      {
+        "id": "shakes-4",
+        "name": "Red Strawberry Shake",
+        "size": "",
+        "price": 90,
+        "desc": "Fresh strawberry blend",
+        "image": ""
+      },
+      {
+        "id": "shakes-5",
+        "name": "Oreo Crunch Shake",
+        "size": "",
+        "price": 100,
+        "desc": "Loaded with Oreo crumble",
+        "image": ""
+      },
+      {
+        "id": "shakes-6",
+        "name": "Oreo Frappe",
+        "size": "",
+        "price": 90,
+        "desc": "Chilled Oreo coffee blend",
+        "image": ""
+      },
+      {
+        "id": "shakes-7",
+        "name": "Mint Mojito",
+        "size": "",
+        "price": 90,
+        "desc": "Fresh mint & lime cooler",
+        "image": ""
+      }
+    ]
+  },
+  {
+    "id": "zingy-parcel",
+    "title": "Zingy Parcel",
+    "desc": "Folded, stuffed, sealed with flavour",
+    "items": [
+      {
+        "id": "zingy-parcel-0",
+        "name": "Spicy Paneer Masala Zingy",
+        "size": "2 pc",
+        "price": 120,
+        "desc": "Pizza rolls with paneer & creamy sauce",
+        "image": ""
+      },
+      {
+        "id": "zingy-parcel-1",
+        "name": "Cheese Makhani Parcel",
+        "size": "2 pc",
+        "price": 120,
+        "desc": "Pizza rolls with onion, capsicum",
+        "image": ""
+      },
+      {
+        "id": "zingy-parcel-2",
+        "name": "Tandoori Veggie Zingy",
+        "size": "2 pc",
+        "price": 120,
+        "desc": "Pizza rolls with onion & capsicum",
+        "image": ""
+      },
+      {
+        "id": "zingy-parcel-3",
+        "name": "Veg Zingy Parcel",
+        "size": "2 pc",
+        "price": 100,
+        "desc": "Pizza rolls with onion & capsicum",
+        "image": ""
+      },
+      {
+        "id": "zingy-parcel-4",
+        "name": "Hot & Spicy Parcel Combo",
+        "size": "2 pc",
+        "price": 120,
+        "desc": "Pizza rolls with spicy veg in spicy sauce",
+        "image": ""
+      }
+    ]
+  }
+]

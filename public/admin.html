@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lemino Pizza — Admin</title>
+<style>
+  :root{
+    --maroon-deep:#20080d; --maroon:#3c0f18; --gold:#c9a24a; --gold-light:#e8cf8c;
+    --cream:#f3e8d3; --ivory:#faf5e8; --forest:#2f4a3a; --red:#a3492f;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--maroon-deep); color:var(--cream); font-family:system-ui,sans-serif; padding:24px;}
+  h1{font-size:1.5rem; color:var(--gold-light); margin-bottom:4px;}
+  .sub{opacity:.7; font-size:.85rem; margin-bottom:24px;}
+  .toolbar{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
+  button, .btn{
+    background:var(--gold); color:var(--maroon-deep); border:none; padding:9px 16px;
+    border-radius:4px; font-weight:600; cursor:pointer; font-size:.85rem;
+  }
+  button.secondary{background:transparent; color:var(--gold-light); border:1px solid var(--gold);}
+  button.danger{background:var(--red); color:var(--ivory);}
+  .category{background:var(--maroon); border:1px solid rgba(201,162,74,.25); border-radius:8px; padding:16px; margin-bottom:18px;}
+  .cat-head{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
+  .cat-head input{background:transparent; border:none; color:var(--gold-light); font-size:1.2rem; font-weight:700; border-bottom:1px dashed rgba(201,162,74,.4); padding:2px 4px;}
+  .cat-head input.desc{color:var(--cream); font-size:.85rem; font-weight:400; opacity:.8;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem;}
+  th{text-align:left; padding:6px 8px; color:var(--gold-dim,#8a6e30); font-weight:600; font-size:.75rem; text-transform:uppercase; letter-spacing:.04em;}
+  td{padding:6px 8px; border-top:1px solid rgba(201,162,74,.12); vertical-align:middle;}
+  td input{width:100%; background:rgba(0,0,0,.2); border:1px solid rgba(201,162,74,.2); color:var(--ivory); padding:6px 8px; border-radius:4px; font-size:.85rem;}
+  td input[type=number]{width:70px;}
+  .thumb{width:56px; height:56px; object-fit:cover; border-radius:4px; border:1px solid rgba(201,162,74,.3); background:var(--maroon-deep); display:block;}
+  .thumb-cell{display:flex; align-items:center; gap:8px;}
+  .file-btn{font-size:.7rem; padding:5px 8px;}
+  .row-actions{display:flex; gap:6px;}
+  .save-hint{position:fixed; bottom:20px; right:20px; background:var(--forest); color:var(--ivory); padding:12px 20px; border-radius:6px; opacity:0; transition:opacity .3s; pointer-events:none; font-size:.85rem;}
+  .save-hint.show{opacity:1;}
+  .add-item-row td{padding-top:12px;}
+  .add-cat-form{display:flex; gap:8px; margin-top:6px;}
+  .add-cat-form input{background:rgba(0,0,0,.2); border:1px solid rgba(201,162,74,.3); color:var(--ivory); padding:8px; border-radius:4px; font-size:.85rem;}
+</style>
+</head>
+<body>
+
+<h1>Lemino Pizza — Menu Admin</h1>
+<div class="sub">Edit items, prices, and photos. Changes save automatically to the backend.</div>
+
+<div class="toolbar">
+  <a class="btn secondary" href="/" target="_blank">View live menu ↗</a>
+  <button id="addCatBtn">+ Add Category</button>
+</div>
+<div id="addCatForm" class="add-cat-form" style="display:none;">
+  <input id="newCatTitle" placeholder="Category title (e.g. Desserts)">
+  <input id="newCatDesc" placeholder="Short description">
+  <button id="saveCatBtn">Create</button>
+</div>
+
+<div id="categories"></div>
+
+<div class="save-hint" id="saveHint">Saved ✓</div>
+
+<script>
+const API = '';
+const catsEl = document.getElementById('categories');
+const saveHint = document.getElementById('saveHint');
+
+function flash(){
+  saveHint.classList.add('show');
+  setTimeout(() => saveHint.classList.remove('show'), 1200);
+}
+
+async function load(){
+  const res = await fetch(API + '/api/menu');
+  const menu = await res.json();
+  render(menu);
+}
+
+function render(menu){
+  catsEl.innerHTML = menu.map(cat => `
+    <div class="category" data-cat="${cat.id}">
+      <div class="cat-head">
+        <div>
+          <input class="cat-title" value="${escapeAttr(cat.title)}" data-cat="${cat.id}">
+          <br>
+          <input class="cat-desc desc" value="${escapeAttr(cat.desc || '')}" data-cat="${cat.id}">
+        </div>
+        <button class="danger del-cat" data-cat="${cat.id}">Delete Category</button>
+      </div>
+      <table>
+        <thead><tr><th>Photo</th><th>Name</th><th>Size</th><th>Price ₹</th><th>Description</th><th></th></tr></thead>
+        <tbody>
+          ${cat.items.map(it => `
+            <tr data-cat="${cat.id}" data-item="${it.id}">
+              <td>
+                <div class="thumb-cell">
+                  <img class="thumb" src="${it.image || placeholderSvg()}" alt="">
+                  <div>
+                    <input type="file" accept="image/*" class="photo-input" style="display:none">
+                    <button class="secondary file-btn upload-btn">Upload</button>
+                  </div>
+                </div>
+              </td>
+              <td><input class="f-name" value="${escapeAttr(it.name)}"></td>
+              <td><input class="f-size" value="${escapeAttr(it.size || '')}"></td>
+              <td><input class="f-price" type="number" value="${it.price}"></td>
+              <td><input class="f-desc" value="${escapeAttr(it.desc || '')}"></td>
+              <td class="row-actions">
+                <button class="secondary save-item-btn">Save</button>
+                <button class="danger del-item-btn">✕</button>
+              </td>
+            </tr>
+          `).join('')}
+          <tr class="add-item-row" data-cat="${cat.id}">
+            <td></td>
+            <td><input class="new-name" placeholder="New item name"></td>
+            <td><input class="new-size" placeholder="e.g. Medium"></td>
+            <td><input class="new-price" type="number" placeholder="0"></td>
+            <td><input class="new-desc" placeholder="Description"></td>
+            <td><button class="add-item-btn">+ Add</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `).join('');
+}
+
+function escapeAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+function placeholderSvg(){
+  return 'data:image/svg+xml,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"><rect width="100%" height="100%" fill="#3c0f18"/><text x="50%" y="55%" font-size="9" fill="#8a6e30" text-anchor="middle" font-family="sans-serif">no photo</text></svg>`
+  );
+}
+
+// ---- category title/desc edits (blur to save) ----
+catsEl.addEventListener('blur', async (e) => {
+  if(e.target.classList.contains('cat-title') || e.target.classList.contains('cat-desc')){
+    const catId = e.target.dataset.cat;
+    const isTitle = e.target.classList.contains('cat-title');
+    const body = isTitle ? {title: e.target.value} : {desc: e.target.value};
+    await fetch(`/api/categories/${catId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    flash();
+  }
+}, true);
+
+catsEl.addEventListener('click', async (e) => {
+  const row = e.target.closest('tr');
+
+  // delete category
+  if(e.target.classList.contains('del-cat')){
+    if(!confirm('Delete this whole category and its items?')) return;
+    await fetch(`/api/categories/${e.target.dataset.cat}`, {method:'DELETE'});
+    load();
+    return;
+  }
+
+  // delete item
+  if(e.target.classList.contains('del-item-btn')){
+    const catId = row.dataset.cat, itemId = row.dataset.item;
+    if(!confirm('Delete this item?')) return;
+    await fetch(`/api/categories/${catId}/items/${itemId}`, {method:'DELETE'});
+    load();
+    return;
+  }
+
+  // save item text fields
+  if(e.target.classList.contains('save-item-btn')){
+    const catId = row.dataset.cat, itemId = row.dataset.item;
+    const body = {
+      name: row.querySelector('.f-name').value,
+      size: row.querySelector('.f-size').value,
+      price: Number(row.querySelector('.f-price').value),
+      desc: row.querySelector('.f-desc').value,
+    };
+    await fetch(`/api/categories/${catId}/items/${itemId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    flash();
+    return;
+  }
+
+  // trigger file picker
+  if(e.target.classList.contains('upload-btn')){
+    row.querySelector('.photo-input').click();
+    return;
+  }
+
+  // add new item
+  if(e.target.classList.contains('add-item-btn')){
+    const catId = row.dataset.cat;
+    const name = row.querySelector('.new-name').value.trim();
+    const price = Number(row.querySelector('.new-price').value);
+    if(!name || !price){ alert('Name and price required'); return; }
+    const body = {
+      name,
+      size: row.querySelector('.new-size').value,
+      price,
+      desc: row.querySelector('.new-desc').value,
+    };
+    await fetch(`/api/categories/${catId}/items`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    load();
+    return;
+  }
+});
+
+// photo upload on file select
+catsEl.addEventListener('change', async (e) => {
+  if(!e.target.classList.contains('photo-input')) return;
+  const row = e.target.closest('tr');
+  const catId = row.dataset.cat, itemId = row.dataset.item;
+  const file = e.target.files[0];
+  if(!file) return;
+  const fd = new FormData();
+  fd.append('photo', file);
+  const res = await fetch(`/api/categories/${catId}/items/${itemId}/photo`, {method:'POST', body: fd});
+  if(res.ok){
+    const updated = await res.json();
+    row.querySelector('.thumb').src = updated.image;
+    flash();
+  } else {
+    alert('Upload failed');
+  }
+});
+
+// add category form
+document.getElementById('addCatBtn').addEventListener('click', () => {
+  document.getElementById('addCatForm').style.display = 'flex';
+});
+document.getElementById('saveCatBtn').addEventListener('click', async () => {
+  const title = document.getElementById('newCatTitle').value.trim();
+  const desc = document.getElementById('newCatDesc').value.trim();
+  if(!title) return alert('Title required');
+  await fetch('/api/categories', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({title, desc})});
+  document.getElementById('newCatTitle').value = '';
+  document.getElementById('newCatDesc').value = '';
+  document.getElementById('addCatForm').style.display = 'none';
+  load();
+});
+
+load();
+</script>
+</body>
+</html>
