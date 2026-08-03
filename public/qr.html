@@ -12,22 +12,31 @@
   *{box-sizing:border-box;}
   body{
     margin:0; min-height:100vh; background:var(--maroon-deep); color:var(--cream);
-    font-family:system-ui,sans-serif; display:flex; align-items:center; justify-content:center; padding:24px;
+    font-family:system-ui,sans-serif; display:flex; justify-content:center; padding:24px;
   }
   .card{
     background:var(--maroon); border:1px solid rgba(201,162,74,.3); border-radius:10px;
-    padding:32px; max-width:420px; width:100%; text-align:center;
+    padding:32px; max-width:640px; width:100%;
   }
-  h1{color:var(--gold-light); font-size:1.3rem; margin-bottom:6px;}
-  .sub{opacity:.7; font-size:.85rem; margin-bottom:22px;}
+  h1{color:var(--gold-light); font-size:1.3rem; margin-bottom:6px; text-align:center;}
+  .sub{opacity:.7; font-size:.85rem; margin-bottom:22px; text-align:center;}
   input{
     width:100%; padding:11px 12px; border-radius:6px; border:1px solid rgba(201,162,74,.35);
     background:rgba(0,0,0,.25); color:var(--cream); font-size:.9rem; margin-bottom:12px;
   }
   button{
-    width:100%; padding:11px; border:none; border-radius:6px; background:var(--gold);
+    padding:11px; border:none; border-radius:6px; background:var(--gold);
     color:var(--maroon-deep); font-weight:700; cursor:pointer; font-size:.9rem;
   }
+  button.full{width:100%;}
+  .tabs{display:flex; gap:8px; margin-bottom:24px;}
+  .tabs button{
+    flex:1; background:transparent; border:1px solid rgba(201,162,74,.35); color:var(--cream); font-weight:600;
+  }
+  .tabs button.active{background:var(--gold); color:var(--maroon-deep);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
   #qrBox{
     margin:24px auto 14px; width:220px; height:220px; background:#fff; border-radius:8px;
     display:flex; align-items:center; justify-content:center; padding:10px;
@@ -35,25 +44,75 @@
   #qrBox.empty{opacity:.25;}
   .placeholder{color:#999; font-size:.75rem;}
   a.download{
-    display:inline-block; margin-top:10px; color:var(--gold-light); font-size:.8rem;
-    text-decoration:underline; cursor:pointer;
+    display:block; margin-top:10px; color:var(--gold-light); font-size:.8rem;
+    text-decoration:underline; cursor:pointer; text-align:center;
   }
+
+  .table-row{display:flex; gap:10px;}
+  .table-row input{flex:1;}
+
+  .table-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px; margin-top:24px;
+  }
+  .table-card{
+    background:rgba(0,0,0,.2); border:1px solid rgba(201,162,74,.25); border-radius:8px;
+    padding:14px; text-align:center;
+  }
+  .table-card .qr-mini{width:100%; aspect-ratio:1; background:#fff; border-radius:4px; display:flex; align-items:center; justify-content:center; margin-bottom:8px;}
+  .table-card .qr-mini img, .table-card .qr-mini canvas{width:100%; height:100%;}
+  .table-card .label{font-size:.85rem; font-weight:700; color:var(--gold-light); margin-bottom:6px;}
+  .table-card a.download{font-size:.72rem; margin-top:6px;}
 </style>
 </head>
 <body>
   <div class="card">
-    <h1>Menu QR Code Generator</h1>
-    <div class="sub">Apna live menu URL daalo (jaise https://lemino-pizza.onrender.com), QR code turant ban jayega.</div>
-    <input id="urlInput" placeholder="https://your-live-menu-url.com" value="">
-    <button id="genBtn">Generate QR Code</button>
-    <div id="qrBox" class="empty"><span class="placeholder">QR yahan dikhega</span></div>
-    <a class="download" id="downloadLink" style="display:none;">⬇ Download as PNG</a>
+    <h1>QR Code Generator</h1>
+    <div class="sub">Menu ka QR banao, ya sabhi tables ke liye ek saath QR generate karo.</div>
+
+    <div class="tabs">
+      <button id="tabSingle" class="active">Single QR (Menu / Admin)</button>
+      <button id="tabTables">Table QR Codes</button>
+    </div>
+
+    <!-- ===== Single QR ===== -->
+    <div id="panelSingle" class="panel active">
+      <input id="urlInput" placeholder="https://your-live-menu-url.com">
+      <button class="full" id="genBtn">Generate QR Code</button>
+      <div id="qrBox" class="empty"><span class="placeholder">QR yahan dikhega</span></div>
+      <a class="download" id="downloadLink" style="display:none;">⬇ Download as PNG</a>
+    </div>
+
+    <!-- ===== Table QR Codes ===== -->
+    <div id="panelTables" class="panel">
+      <input id="baseUrlInput" placeholder="https://your-live-menu-url.com (bina /admin.html ke)">
+      <div class="table-row">
+        <input id="tableFrom" type="number" placeholder="From (e.g. 1)" min="1">
+        <input id="tableTo" type="number" placeholder="To (e.g. 7)" min="1">
+      </div>
+      <button class="full" id="genTablesBtn">Generate All Table QR Codes</button>
+      <div id="tableGrid" class="table-grid"></div>
+    </div>
   </div>
 
 <script>
+// ---------- Tabs ----------
+const tabSingle = document.getElementById('tabSingle');
+const tabTables = document.getElementById('tabTables');
+const panelSingle = document.getElementById('panelSingle');
+const panelTables = document.getElementById('panelTables');
+
+tabSingle.addEventListener('click', () => {
+  tabSingle.classList.add('active'); tabTables.classList.remove('active');
+  panelSingle.classList.add('active'); panelTables.classList.remove('active');
+});
+tabTables.addEventListener('click', () => {
+  tabTables.classList.add('active'); tabSingle.classList.remove('active');
+  panelTables.classList.add('active'); panelSingle.classList.remove('active');
+});
+
+// ---------- Single QR ----------
 const qrBox = document.getElementById('qrBox');
 const downloadLink = document.getElementById('downloadLink');
-let qr = null;
 
 document.getElementById('genBtn').addEventListener('click', () => {
   const url = document.getElementById('urlInput').value.trim();
@@ -62,25 +121,63 @@ document.getElementById('genBtn').addEventListener('click', () => {
   qrBox.innerHTML = '';
   qrBox.classList.remove('empty');
 
-  qr = new QRCode(qrBox, {
-    text: url,
-    width: 200,
-    height: 200,
-    colorDark: '#20080d',
-    colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.H
+  new QRCode(qrBox, {
+    text: url, width: 200, height: 200,
+    colorDark: '#20080d', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H
   });
 
-  // wait a tick for the canvas/img to render, then wire up download
   setTimeout(() => {
     const img = qrBox.querySelector('img') || qrBox.querySelector('canvas');
     if(img){
       const dataUrl = img.tagName === 'CANVAS' ? img.toDataURL('image/png') : img.src;
       downloadLink.href = dataUrl;
       downloadLink.download = 'lemino-pizza-menu-qr.png';
-      downloadLink.style.display = 'inline-block';
+      downloadLink.style.display = 'block';
     }
   }, 150);
+});
+
+// ---------- Table QR Codes (bulk) ----------
+document.getElementById('genTablesBtn').addEventListener('click', () => {
+  const baseUrl = document.getElementById('baseUrlInput').value.trim().replace(/\/+$/, '');
+  const from = parseInt(document.getElementById('tableFrom').value, 10);
+  const to = parseInt(document.getElementById('tableTo').value, 10);
+
+  if(!baseUrl){ alert('Pehle apna live menu URL daalo'); return; }
+  if(!from || !to || to < from){ alert('Sahi "From" aur "To" table number daalo'); return; }
+  if(to - from > 100){ alert('Ek baar me 100 se zyada tables mat banao'); return; }
+
+  const grid = document.getElementById('tableGrid');
+  grid.innerHTML = '';
+
+  for(let n = from; n <= to; n++){
+    const card = document.createElement('div');
+    card.className = 'table-card';
+    card.innerHTML = `
+      <div class="label">Table ${n}</div>
+      <div class="qr-mini" id="qr-table-${n}"></div>
+      <a class="download" id="dl-table-${n}" style="display:none;">⬇ Download</a>
+    `;
+    grid.appendChild(card);
+
+    const tableUrl = `${baseUrl}/?table=${n}`;
+    const qrEl = card.querySelector(`#qr-table-${n}`);
+    new QRCode(qrEl, {
+      text: tableUrl, width: 150, height: 150,
+      colorDark: '#20080d', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H
+    });
+
+    setTimeout(() => {
+      const img = qrEl.querySelector('img') || qrEl.querySelector('canvas');
+      const dl = card.querySelector(`#dl-table-${n}`);
+      if(img && dl){
+        const dataUrl = img.tagName === 'CANVAS' ? img.toDataURL('image/png') : img.src;
+        dl.href = dataUrl;
+        dl.download = `lemino-pizza-table-${n}-qr.png`;
+        dl.style.display = 'block';
+      }
+    }, 150);
+  }
 });
 </script>
 </body>
