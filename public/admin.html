@@ -38,6 +38,17 @@
   .add-item-row td{padding-top:12px;}
   .add-cat-form{display:flex; gap:8px; margin-top:6px;}
   .add-cat-form input{background:rgba(0,0,0,.2); border:1px solid rgba(201,162,74,.3); color:var(--ivory); padding:8px; border-radius:4px; font-size:.85rem;}
+  .order-card{background:rgba(0,0,0,.2); border:1px solid rgba(201,162,74,.2); border-radius:6px; padding:14px 16px;}
+  .order-card-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;}
+  .order-badge{padding:2px 10px; border-radius:12px; font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; font-weight:600;}
+  .badge-new{background:#a3492f; color:#fff;}
+  .badge-preparing{background:#8a6e30; color:#fff;}
+  .badge-done{background:#2f4a3a; color:#fff;}
+  .order-meta{font-size:.8rem; opacity:.75; margin-bottom:8px;}
+  .order-items{font-size:.85rem; margin-bottom:10px; line-height:1.6;}
+  .order-actions{display:flex; gap:8px; flex-wrap:wrap;}
+  .order-actions button{font-size:.72rem; padding:6px 10px;}
+  .order-total{font-weight:700; color:var(--gold-light);}
 </style>
 </head>
 <body>
@@ -50,6 +61,15 @@
   <a class="btn secondary" href="/qr.html" target="_blank">Generate Table QR Code ↗</a>
   <button id="addCatBtn">+ Add Category</button>
   <button id="toggleThemeBtn" class="secondary">🎨 Colour Theme</button>
+  <button id="toggleOrdersBtn" class="secondary">🧾 Orders <span id="newOrdersBadge" style="display:none; background:var(--red); color:var(--ivory); border-radius:10px; padding:1px 7px; font-size:.7rem; margin-left:4px;"></span></button>
+</div>
+
+<div id="ordersPanel" class="category" style="display:none;">
+  <div class="cat-head">
+    <div><h2 style="color:var(--gold-light); font-size:1.1rem;">Orders</h2></div>
+    <button id="refreshOrdersBtn" class="secondary">↻ Refresh</button>
+  </div>
+  <div id="ordersList" style="display:flex; flex-direction:column; gap:12px;"></div>
 </div>
 
 <div id="themePanel" class="category" style="display:none;">
@@ -243,6 +263,113 @@ document.getElementById('saveCatBtn').addEventListener('click', async () => {
   document.getElementById('newCatDesc').value = '';
   document.getElementById('addCatForm').style.display = 'none';
   load();
+});
+
+// ---------- Orders ----------
+const ordersPanel = document.getElementById('ordersPanel');
+const ordersList = document.getElementById('ordersList');
+const newOrdersBadge = document.getElementById('newOrdersBadge');
+let ordersPollTimer = null;
+
+document.getElementById('toggleOrdersBtn').addEventListener('click', async () => {
+  const showing = ordersPanel.style.display !== 'none';
+  if(showing){
+    ordersPanel.style.display = 'none';
+    clearInterval(ordersPollTimer);
+    return;
+  }
+  ordersPanel.style.display = 'block';
+  await loadOrders();
+  ordersPollTimer = setInterval(loadOrders, 20000); // auto-refresh every 20s
+});
+
+document.getElementById('refreshOrdersBtn').addEventListener('click', loadOrders);
+
+async function loadOrders(){
+  try{
+    const res = await fetch('/api/orders');
+    const orders = await res.json();
+    renderOrders(orders);
+    checkNewOrdersBadge(orders);
+  }catch(err){ console.error(err); }
+}
+
+// badge shows count of orders still 'new' even when the panel is closed
+function checkNewOrdersBadge(orders){
+  const newCount = orders.filter(o => o.status === 'new').length;
+  if(newCount > 0){
+    newOrdersBadge.style.display = 'inline-block';
+    newOrdersBadge.textContent = newCount;
+  } else {
+    newOrdersBadge.style.display = 'none';
+  }
+}
+// poll for badge even when panel is closed
+setInterval(async () => {
+  if(ordersPanel.style.display === 'none'){
+    try{
+      const res = await fetch('/api/orders');
+      const orders = await res.json();
+      checkNewOrdersBadge(orders);
+    }catch(err){}
+  }
+}, 20000);
+fetch('/api/orders').then(r => r.json()).then(checkNewOrdersBadge).catch(() => {});
+
+function renderOrders(orders){
+  if(orders.length === 0){
+    ordersList.innerHTML = '<div style="opacity:.6; padding:20px 0; text-align:center;">No orders yet.</div>';
+    return;
+  }
+  ordersList.innerHTML = orders.map(o => {
+    const time = new Date(o.createdAt).toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
+    const badgeClass = o.status === 'new' ? 'badge-new' : o.status === 'preparing' ? 'badge-preparing' : 'badge-done';
+    const itemsHtml = o.items.map(it => `${it.name}${it.size ? ' ('+it.size+')' : ''} × ${it.qty} — ₹${it.qty*it.price}`).join('<br>');
+    let locationHtml = '';
+    if(o.orderType === 'dinein'){
+      locationHtml = `Table #${o.tableNumber}`;
+    } else {
+      const parts = [];
+      if(o.address) parts.push(o.address);
+      if(o.location) parts.push(`<a href="https://maps.google.com/?q=${o.location.lat},${o.location.lng}" target="_blank" style="color:var(--gold-light);">📍 View on map</a>`);
+      locationHtml = parts.join(' · ') || '—';
+    }
+    return `
+      <div class="order-card" data-order="${o.id}">
+        <div class="order-card-head">
+          <div>
+            <span class="order-badge ${badgeClass}">${o.status}</span>
+            <span style="margin-left:8px; font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; opacity:.8;">${o.orderType === 'dinein' ? 'Dine-in' : 'Delivery'}</span>
+          </div>
+          <span class="order-total">₹${o.total}</span>
+        </div>
+        <div class="order-meta">${time} ${o.customerName ? '· ' + o.customerName : ''} ${o.customerPhone ? '· ' + o.customerPhone : ''}</div>
+        <div class="order-meta"><b>${locationHtml}</b></div>
+        <div class="order-items">${itemsHtml}</div>
+        <div class="order-actions">
+          ${o.status !== 'preparing' ? `<button class="secondary status-btn" data-status="preparing">Mark Preparing</button>` : ''}
+          ${o.status !== 'done' ? `<button class="secondary status-btn" data-status="done">Mark Done</button>` : ''}
+          <button class="danger del-order-btn">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+ordersList.addEventListener('click', async (e) => {
+  const card = e.target.closest('.order-card');
+  if(!card) return;
+  const orderId = card.dataset.order;
+
+  if(e.target.classList.contains('status-btn')){
+    await fetch(`/api/orders/${orderId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status: e.target.dataset.status})});
+    loadOrders();
+  }
+  if(e.target.classList.contains('del-order-btn')){
+    if(!confirm('Delete this order?')) return;
+    await fetch(`/api/orders/${orderId}`, {method:'DELETE'});
+    loadOrders();
+  }
 });
 
 // ---------- Theme editor ----------
