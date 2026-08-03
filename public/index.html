@@ -252,6 +252,28 @@
   }
   .whatsapp-btn:hover{background:var(--forest-light);}
 
+  .order-type-row{display:flex; gap:10px; margin-bottom:14px;}
+  .order-type-row label{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:10px 8px; border:1px solid rgba(201,162,74,.3); border-radius:var(--radius);
+    font-family:'Jost'; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--cream); cursor:pointer; transition:.2s;
+  }
+  .order-type-row input{accent-color:var(--gold);}
+  .order-type-row label.active{background:rgba(201,162,74,.15); border-color:var(--gold); color:var(--gold-light);}
+  .order-field{
+    width:100%; background:rgba(0,0,0,.25); border:1px solid rgba(201,162,74,.3); color:var(--ivory);
+    padding:11px 12px; border-radius:var(--radius); font-family:'Jost'; font-size:.85rem; margin-bottom:10px;
+  }
+  .order-field::placeholder{color:rgba(243,232,211,.4);}
+  .location-btn{
+    width:100%; background:transparent; border:1px dashed var(--gold); color:var(--gold-light);
+    padding:10px; border-radius:var(--radius); font-family:'Jost'; font-size:.78rem; letter-spacing:.04em;
+    cursor:pointer; margin-bottom:8px; transition:.2s;
+  }
+  .location-btn:hover{background:rgba(201,162,74,.1);}
+  .location-status{font-size:.72rem; color:var(--gold-dim); margin:-4px 0 10px; min-height:14px;}
+
   @media(max-width:640px){
     .hero{padding:14vh 7vw 16vh;}
     .cat-desc{display:none;}
@@ -323,6 +345,24 @@
   </div>
   <div class="drawer-body" id="drawerBody"></div>
   <div class="drawer-foot">
+    <div class="order-type-row">
+      <label id="labelDinein"><input type="radio" name="orderType" value="dinein" checked> Dine-in</label>
+      <label id="labelDelivery"><input type="radio" name="orderType" value="delivery"> Delivery</label>
+    </div>
+
+    <div id="dineinFields">
+      <input class="order-field" id="tableNumber" type="number" min="1" placeholder="Table Number">
+    </div>
+
+    <div id="deliveryFields" style="display:none;">
+      <input class="order-field" id="customerAddress" type="text" placeholder="Delivery Address">
+      <button type="button" class="location-btn" id="useLocationBtn">📍 Share My Live Location</button>
+      <div class="location-status" id="locationStatus"></div>
+    </div>
+
+    <input class="order-field" id="customerName" type="text" placeholder="Your Name">
+    <input class="order-field" id="customerPhone" type="tel" placeholder="Phone Number">
+
     <div class="total-row"><span>Total</span><b id="totalPrice">₹0</b></div>
     <button class="whatsapp-btn" id="sendOrder">Send Order on WhatsApp</button>
   </div>
@@ -633,15 +673,98 @@ document.getElementById('cartFab').addEventListener('click', openDrawer);
 document.getElementById('drawerClose').addEventListener('click', closeDrawer);
 overlay.addEventListener('click', closeDrawer);
 
-document.getElementById('sendOrder').addEventListener('click', () => {
+// ---------- Order type toggle ----------
+const labelDinein = document.getElementById('labelDinein');
+const labelDelivery = document.getElementById('labelDelivery');
+const dineinFields = document.getElementById('dineinFields');
+const deliveryFields = document.getElementById('deliveryFields');
+
+function updateOrderTypeUI(){
+  const type = document.querySelector('input[name=orderType]:checked').value;
+  labelDinein.classList.toggle('active', type === 'dinein');
+  labelDelivery.classList.toggle('active', type === 'delivery');
+  dineinFields.style.display = type === 'dinein' ? 'block' : 'none';
+  deliveryFields.style.display = type === 'delivery' ? 'block' : 'none';
+}
+document.querySelectorAll('input[name=orderType]').forEach(r => r.addEventListener('change', updateOrderTypeUI));
+updateOrderTypeUI();
+
+// ---------- Delivery location ----------
+let deliveryCoords = null;
+document.getElementById('useLocationBtn').addEventListener('click', () => {
+  const status = document.getElementById('locationStatus');
+  if(!navigator.geolocation){
+    status.textContent = 'Location not supported on this device.';
+    return;
+  }
+  status.textContent = 'Getting your location…';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      deliveryCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      status.textContent = '✓ Location captured — it will be sent with your order.';
+    },
+    (err) => {
+      status.textContent = 'Could not get location. Please type your address above instead.';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+});
+
+// ---------- Send order ----------
+document.getElementById('sendOrder').addEventListener('click', async () => {
   const entries = Object.values(cart).filter(i => i.qty > 0);
   if(entries.length === 0){ return; }
+
+  const orderType = document.querySelector('input[name=orderType]:checked').value;
+  const tableNumber = document.getElementById('tableNumber').value.trim();
+  const address = document.getElementById('customerAddress').value.trim();
+  const name = document.getElementById('customerName').value.trim();
+  const phone = document.getElementById('customerPhone').value.trim();
+
+  if(orderType === 'dinein' && !tableNumber){
+    alert('Please enter your table number.');
+    return;
+  }
+  if(orderType === 'delivery' && !address && !deliveryCoords){
+    alert('Please share your location or type your delivery address.');
+    return;
+  }
+
+  const total = entries.reduce((a,i) => a + i.qty*i.price, 0);
+  const mapsLink = deliveryCoords ? `https://maps.google.com/?q=${deliveryCoords.lat},${deliveryCoords.lng}` : '';
+
+  const order = {
+    orderType,
+    tableNumber: orderType === 'dinein' ? tableNumber : '',
+    address: orderType === 'delivery' ? address : '',
+    location: orderType === 'delivery' ? deliveryCoords : null,
+    customerName: name,
+    customerPhone: phone,
+    items: entries.map(it => ({ name: it.name, size: it.size, qty: it.qty, price: it.price })),
+    total
+  };
+
+  // Save to backend so it shows up in the admin Orders list
+  try{
+    await fetch('/api/orders', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(order)
+    });
+  }catch(err){ console.error('Could not save order to backend', err); }
+
+  // Build WhatsApp message
   let msg = 'Hello Lemino Pizza, I would like to order:%0A%0A';
   entries.forEach(it => {
     msg += `• ${it.name}${it.size ? ' ('+it.size+')' : ''} x${it.qty} — ₹${it.qty*it.price}%0A`;
   });
-  const total = entries.reduce((a,i) => a + i.qty*i.price, 0);
-  msg += `%0ATotal: ₹${total}`;
+  msg += `%0ATotal: ₹${total}%0A%0A`;
+  msg += orderType === 'dinein' ? `Order type: Dine-in%0ATable Number: ${tableNumber}%0A` : `Order type: Delivery%0A`;
+  if(orderType === 'delivery'){
+    if(address) msg += `Address: ${address}%0A`;
+    if(mapsLink) msg += `Location: ${mapsLink}%0A`;
+  }
+  if(name) msg += `Name: ${name}%0A`;
+  if(phone) msg += `Phone: ${phone}%0A`;
+
   window.open(`https://wa.me/918233778552?text=${msg}`, '_blank');
 });
 
