@@ -47,7 +47,18 @@
 
 <div class="toolbar">
   <a class="btn secondary" href="/" target="_blank">View live menu ↗</a>
+  <a class="btn secondary" href="/qr.html" target="_blank">Generate Table QR Code ↗</a>
   <button id="addCatBtn">+ Add Category</button>
+  <button id="toggleThemeBtn" class="secondary">🎨 Colour Theme</button>
+</div>
+
+<div id="themePanel" class="category" style="display:none;">
+  <div class="cat-head"><div><h2 style="color:var(--gold-light); font-size:1.1rem;">Colour Theme</h2></div></div>
+  <div id="themeSwatches" style="display:flex; flex-wrap:wrap; gap:16px; margin:10px 0 16px;"></div>
+  <div style="display:flex; gap:10px;">
+    <button id="saveThemeBtn">Save Theme</button>
+    <button id="resetThemeBtn" class="secondary">Reset to Default</button>
+  </div>
 </div>
 <div id="addCatForm" class="add-cat-form" style="display:none;">
   <input id="newCatTitle" placeholder="Category title (e.g. Desserts)">
@@ -232,6 +243,69 @@ document.getElementById('saveCatBtn').addEventListener('click', async () => {
   document.getElementById('newCatDesc').value = '';
   document.getElementById('addCatForm').style.display = 'none';
   load();
+});
+
+// ---------- Theme editor ----------
+const THEME_LABELS = {
+  '--maroon-deep': 'Background (Darkest)',
+  '--maroon': 'Card Background',
+  '--maroon-light': 'Card Hover',
+  '--gold': 'Primary Accent (Gold)',
+  '--gold-light': 'Headings / Highlights',
+  '--gold-dim': 'Muted Gold',
+  '--cream': 'Body Text',
+  '--ivory': 'Bright Text',
+  '--forest': 'Secondary Accent (Green)',
+  '--terracotta': 'Tertiary Accent (Red)'
+};
+
+const themePanel = document.getElementById('themePanel');
+const themeSwatches = document.getElementById('themeSwatches');
+let currentTheme = {};
+
+document.getElementById('toggleThemeBtn').addEventListener('click', async () => {
+  const showing = themePanel.style.display !== 'none';
+  if(showing){ themePanel.style.display = 'none'; return; }
+  themePanel.style.display = 'block';
+  await loadTheme();
+});
+
+async function loadTheme(){
+  const res = await fetch('/api/theme');
+  currentTheme = await res.json();
+  renderTheme();
+}
+
+function renderTheme(){
+  themeSwatches.innerHTML = Object.entries(THEME_LABELS).map(([key, label]) => `
+    <label style="display:flex; flex-direction:column; gap:6px; font-size:.75rem; color:var(--cream);">
+      ${label}
+      <input type="color" data-key="${key}" value="${currentTheme[key] || '#000000'}" style="width:56px; height:36px; border:none; border-radius:4px; cursor:pointer; background:none;">
+    </label>
+  `).join('');
+}
+
+document.getElementById('saveThemeBtn').addEventListener('click', async () => {
+  const body = {};
+  themeSwatches.querySelectorAll('input[type=color]').forEach(inp => {
+    body[inp.dataset.key] = inp.value;
+  });
+  await fetch('/api/theme', {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  flash();
+  alert('Theme saved! Live menu ko refresh karke check karo.');
+});
+
+document.getElementById('resetThemeBtn').addEventListener('click', async () => {
+  if(!confirm('Default colours pe wapas jaana hai?')) return;
+  const defaults = {
+    '--maroon-deep': '#20080d', '--maroon': '#3c0f18', '--maroon-light': '#5a1b28',
+    '--gold': '#c9a24a', '--gold-light': '#e8cf8c', '--gold-dim': '#8a6e30',
+    '--cream': '#f3e8d3', '--ivory': '#faf5e8', '--forest': '#2f4a3a', '--terracotta': '#a3492f'
+  };
+  await fetch('/api/theme', {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(defaults)});
+  currentTheme = defaults;
+  renderTheme();
+  flash();
 });
 
 load();
