@@ -4,9 +4,24 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { Readable } = require('stream');
+const cloudinary = require('cloudinary').v2;
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// ---------- Cloudinary config ----------
+// Set these in Render → your service → Environment tab (or a local .env)
+const CLOUDINARY_READY = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+if (CLOUDINARY_READY) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+} else {
+  console.warn('⚠️  Cloudinary env vars not set — photo uploads will fail until CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET are set.');
+}
 
 const DATA_FILE = path.join(__dirname, 'data', 'menu.json');
 const THEME_FILE = path.join(__dirname, 'data', 'theme.json');
@@ -46,23 +61,32 @@ function slugify(str) {
     .replace(/(^-|-$)/g, '') || crypto.randomBytes(3).toString('hex');
 }
 
-// ---------- image upload (multer) ----------
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-    const unique = Date.now() + '-' + crypto.randomBytes(4).toString('hex');
-    cb(null, unique + ext);
-  }
-});
+// ---------- image upload (multer → memory → Cloudinary) ----------
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
     const ok = /\.(jpe?g|png|webp|gif)$/i.test(file.originalname);
     cb(ok ? null : new Error('Only jpg, png, webp, gif images allowed'), ok);
   }
 });
+
+function bufferToStream(buffer) {
+  const readable = new Readable();
+  readable.push(buffer);
+  readable.push(null);
+  return readable;
+}
+
+function uploadToCloudinary(buffer) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'lemino-pizza-menu' },
+      (err, result) => (err ? reject(err) : resolve(result))
+    );
+    bufferToStream(buffer).pipe(stream);
+  });
+}
 
 // ================= API ROUTES =================
 
@@ -221,7 +245,10 @@ app.delete('/api/categories/:catId/items/:itemId', (req, res) => {
 });
 
 // Upload / replace an item's photo. Field name: "photo"
-app.post('/api/categories/:catId/items/:itemId/photo', upload.single('photo'), (req, res) => {
+app.post('/api/categories/:catId/items/:itemId/photo', upload.single('photo'), async (req, res) => {
+  if (!CLOUDINARY_READY) {
+    return res.status(500).json({ error: 'Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET as environment variables.' });
+  }
   if (!req.file) return res.status(400).json({ error: 'no photo uploaded' });
   const menu = readMenu();
   const cat = menu.find(c => c.id === req.params.catId);
@@ -229,15 +256,15 @@ app.post('/api/categories/:catId/items/:itemId/photo', upload.single('photo'), (
   const item = cat.items.find(i => i.id === req.params.itemId);
   if (!item) return res.status(404).json({ error: 'item not found' });
 
-  // remove old uploaded image file if it was one of ours
-  if (item.image && item.image.startsWith('/uploads/')) {
-    const oldPath = path.join(__dirname, 'public', item.image);
-    fs.unlink(oldPath, () => {});
+  try {
+    const result = await uploadToCloudinary(req.file.buffer);
+    item.image = result.secure_url; // permanent, hosted URL — survives restarts/redeploys
+    writeMenu(menu);
+    res.json(item);
+  } catch (err) {
+    console.error('Cloudinary upload failed:', err);
+    res.status(500).json({ error: 'Photo upload failed. Please try again.' });
   }
-
-  item.image = '/uploads/' + req.file.filename;
-  writeMenu(menu);
-  res.json(item);
 });
 
 // Simple health check
