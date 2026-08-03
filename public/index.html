@@ -689,6 +689,23 @@ function updateOrderTypeUI(){
 document.querySelectorAll('input[name=orderType]').forEach(r => r.addEventListener('change', updateOrderTypeUI));
 updateOrderTypeUI();
 
+// ---------- Auto-fill table number from QR code (?table=5 in the URL) ----------
+const urlTable = new URLSearchParams(window.location.search).get('table');
+if(urlTable){
+  document.querySelector('input[name=orderType][value=dinein]').checked = true;
+  document.getElementById('tableNumber').value = urlTable;
+  updateOrderTypeUI();
+
+  const banner = document.createElement('div');
+  banner.textContent = `📍 You're ordering from Table ${urlTable}`;
+  banner.style.cssText = `
+    position:fixed; top:0; left:0; right:0; z-index:200; text-align:center;
+    background:var(--forest); color:var(--ivory); padding:9px; font-family:'Jost';
+    font-size:.78rem; letter-spacing:.04em;
+  `;
+  document.body.prepend(banner);
+}
+
 // ---------- Delivery location ----------
 let deliveryCoords = null;
 document.getElementById('useLocationBtn').addEventListener('click', () => {
