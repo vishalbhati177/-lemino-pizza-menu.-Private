@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lemino Pizza — QR Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --maroon-deep:#20080d; --maroon:#3c0f18; --gold:#c9a24a; --gold-light:#e8cf8c; --cream:#f3e8d3;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--maroon-deep); color:var(--cream);
+    font-family:system-ui,sans-serif; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card{
+    background:var(--maroon); border:1px solid rgba(201,162,74,.3); border-radius:10px;
+    padding:32px; max-width:420px; width:100%; text-align:center;
+  }
+  h1{color:var(--gold-light); font-size:1.3rem; margin-bottom:6px;}
+  .sub{opacity:.7; font-size:.85rem; margin-bottom:22px;}
+  input{
+    width:100%; padding:11px 12px; border-radius:6px; border:1px solid rgba(201,162,74,.35);
+    background:rgba(0,0,0,.25); color:var(--cream); font-size:.9rem; margin-bottom:12px;
+  }
+  button{
+    width:100%; padding:11px; border:none; border-radius:6px; background:var(--gold);
+    color:var(--maroon-deep); font-weight:700; cursor:pointer; font-size:.9rem;
+  }
+  #qrBox{
+    margin:24px auto 14px; width:220px; height:220px; background:#fff; border-radius:8px;
+    display:flex; align-items:center; justify-content:center; padding:10px;
+  }
+  #qrBox.empty{opacity:.25;}
+  .placeholder{color:#999; font-size:.75rem;}
+  a.download{
+    display:inline-block; margin-top:10px; color:var(--gold-light); font-size:.8rem;
+    text-decoration:underline; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Menu QR Code Generator</h1>
+    <div class="sub">Apna live menu URL daalo (jaise https://lemino-pizza.onrender.com), QR code turant ban jayega.</div>
+    <input id="urlInput" placeholder="https://your-live-menu-url.com" value="">
+    <button id="genBtn">Generate QR Code</button>
+    <div id="qrBox" class="empty"><span class="placeholder">QR yahan dikhega</span></div>
+    <a class="download" id="downloadLink" style="display:none;">⬇ Download as PNG</a>
+  </div>
+
+<script>
+const qrBox = document.getElementById('qrBox');
+const downloadLink = document.getElementById('downloadLink');
+let qr = null;
+
+document.getElementById('genBtn').addEventListener('click', () => {
+  const url = document.getElementById('urlInput').value.trim();
+  if(!url){ alert('Pehle apna live menu URL daalo'); return; }
+
+  qrBox.innerHTML = '';
+  qrBox.classList.remove('empty');
+
+  qr = new QRCode(qrBox, {
+    text: url,
+    width: 200,
+    height: 200,
+    colorDark: '#20080d',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  // wait a tick for the canvas/img to render, then wire up download
+  setTimeout(() => {
+    const img = qrBox.querySelector('img') || qrBox.querySelector('canvas');
+    if(img){
+      const dataUrl = img.tagName === 'CANVAS' ? img.toDataURL('image/png') : img.src;
+      downloadLink.href = dataUrl;
+      downloadLink.download = 'lemino-pizza-menu-qr.png';
+      downloadLink.style.display = 'inline-block';
+    }
+  }, 150);
+});
+</script>
+</body>
+</html>
