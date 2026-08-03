@@ -49,6 +49,37 @@
   .order-actions{display:flex; gap:8px; flex-wrap:wrap;}
   .order-actions button{font-size:.72rem; padding:6px 10px;}
   .order-total{font-weight:700; color:var(--gold-light);}
+
+  @media (max-width: 700px){
+    body{padding:14px;}
+    h1{font-size:1.2rem;}
+    .toolbar{gap:8px;}
+    .toolbar .btn, .toolbar button{padding:9px 12px; font-size:.8rem;}
+    .add-cat-form{flex-direction:column;}
+
+    table, thead, tbody, tr{display:block; width:100%;}
+    thead{display:none;}
+    tbody tr{
+      border:1px solid rgba(201,162,74,.3); border-radius:8px; padding:10px 12px;
+      margin-bottom:14px; background:rgba(0,0,0,.15);
+    }
+    tbody tr.add-item-row{background:rgba(201,162,74,.06);}
+    td{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-top:none !important; padding:8px 0 !important;
+    }
+    td[data-label]:not([data-label=""])::before{
+      content:attr(data-label); flex:0 0 auto; font-size:.68rem; text-transform:uppercase;
+      letter-spacing:.04em; color:var(--gold); opacity:.75; margin-right:8px;
+    }
+    td input{width:60%; text-align:right;}
+    td .thumb-cell{width:100%; justify-content:space-between;}
+    td.row-actions{justify-content:flex-end; gap:8px;}
+    td.row-actions::before{display:none;}
+    td[data-label="Photo"]{flex-direction:column; align-items:flex-start;}
+    td[data-label="Photo"]::before{margin-bottom:6px;}
+    tr.add-item-row td:last-child button{width:100%;}
+  }
 </style>
 </head>
 <body>
@@ -122,7 +153,7 @@ function render(menu){
         <tbody>
           ${cat.items.map(it => `
             <tr data-cat="${cat.id}" data-item="${it.id}">
-              <td>
+              <td data-label="Photo">
                 <div class="thumb-cell">
                   <img class="thumb" src="${it.image || placeholderSvg()}" alt="">
                   <div>
@@ -131,23 +162,23 @@ function render(menu){
                   </div>
                 </div>
               </td>
-              <td><input class="f-name" value="${escapeAttr(it.name)}"></td>
-              <td><input class="f-size" value="${escapeAttr(it.size || '')}"></td>
-              <td><input class="f-price" type="number" value="${it.price}"></td>
-              <td><input class="f-desc" value="${escapeAttr(it.desc || '')}"></td>
-              <td class="row-actions">
+              <td data-label="Name"><input class="f-name" value="${escapeAttr(it.name)}"></td>
+              <td data-label="Size"><input class="f-size" value="${escapeAttr(it.size || '')}"></td>
+              <td data-label="Price ₹"><input class="f-price" type="number" value="${it.price}"></td>
+              <td data-label="Description"><input class="f-desc" value="${escapeAttr(it.desc || '')}"></td>
+              <td class="row-actions" data-label="">
                 <button class="secondary save-item-btn">Save</button>
                 <button class="danger del-item-btn">✕</button>
               </td>
             </tr>
           `).join('')}
           <tr class="add-item-row" data-cat="${cat.id}">
-            <td></td>
-            <td><input class="new-name" placeholder="New item name"></td>
-            <td><input class="new-size" placeholder="e.g. Medium"></td>
-            <td><input class="new-price" type="number" placeholder="0"></td>
-            <td><input class="new-desc" placeholder="Description"></td>
-            <td><button class="add-item-btn">+ Add</button></td>
+            <td data-label=""></td>
+            <td data-label="Name"><input class="new-name" placeholder="New item name"></td>
+            <td data-label="Size"><input class="new-size" placeholder="e.g. Medium"></td>
+            <td data-label="Price ₹"><input class="new-price" type="number" placeholder="0"></td>
+            <td data-label="Description"><input class="new-desc" placeholder="Description"></td>
+            <td data-label=""><button class="add-item-btn">+ Add</button></td>
           </tr>
         </tbody>
       </table>
