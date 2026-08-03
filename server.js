@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 4000;
 
 const DATA_FILE = path.join(__dirname, 'data', 'menu.json');
 const THEME_FILE = path.join(__dirname, 'data', 'theme.json');
+const ORDERS_FILE = path.join(__dirname, 'data', 'orders.json');
 const UPLOADS_DIR = path.join(__dirname, 'public', 'uploads');
 
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -31,6 +32,13 @@ function readTheme() {
 }
 function writeTheme(theme) {
   fs.writeFileSync(THEME_FILE, JSON.stringify(theme, null, 2));
+}
+function readOrders() {
+  if (!fs.existsSync(ORDERS_FILE)) fs.writeFileSync(ORDERS_FILE, '[]');
+  return JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf8'));
+}
+function writeOrders(orders) {
+  fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
 }
 function slugify(str) {
   return String(str).toLowerCase().trim()
@@ -73,6 +81,58 @@ app.put('/api/theme', (req, res) => {
   const updated = { ...current, ...req.body };
   writeTheme(updated);
   res.json(updated);
+});
+
+// ---- Orders ----
+
+// Create a new order (called by the customer-facing menu)
+app.post('/api/orders', (req, res) => {
+  const { orderType, tableNumber, address, location, customerName, customerPhone, items, total } = req.body;
+  if (!orderType || !items || !items.length) {
+    return res.status(400).json({ error: 'orderType and items are required' });
+  }
+  const orders = readOrders();
+  const order = {
+    id: Date.now().toString(36) + '-' + crypto.randomBytes(3).toString('hex'),
+    orderType,
+    tableNumber: tableNumber || '',
+    address: address || '',
+    location: location || null,
+    customerName: customerName || '',
+    customerPhone: customerPhone || '',
+    items,
+    total: Number(total) || 0,
+    status: 'new',
+    createdAt: new Date().toISOString()
+  };
+  orders.unshift(order); // newest first
+  writeOrders(orders);
+  res.status(201).json(order);
+});
+
+// List all orders (used by the admin panel)
+app.get('/api/orders', (req, res) => {
+  res.json(readOrders());
+});
+
+// Update an order's status (e.g. new -> preparing -> done)
+app.put('/api/orders/:orderId', (req, res) => {
+  const orders = readOrders();
+  const order = orders.find(o => o.id === req.params.orderId);
+  if (!order) return res.status(404).json({ error: 'order not found' });
+  if (req.body.status) order.status = req.body.status;
+  writeOrders(orders);
+  res.json(order);
+});
+
+// Delete an order
+app.delete('/api/orders/:orderId', (req, res) => {
+  let orders = readOrders();
+  const exists = orders.some(o => o.id === req.params.orderId);
+  if (!exists) return res.status(404).json({ error: 'order not found' });
+  orders = orders.filter(o => o.id !== req.params.orderId);
+  writeOrders(orders);
+  res.json({ ok: true });
 });
 
 // ---- Categories ----
