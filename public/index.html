@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lemino Pizza — Didwana | Digital Menu</title>
+<script>
+  // Apply saved theme colors as early as possible to avoid a color flash
+  fetch('/api/theme').then(r => r.json()).then(theme => {
+    const root = document.documentElement.style;
+    Object.entries(theme).forEach(([k, v]) => root.setProperty(k, v));
+  }).catch(() => {});
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Marcellus&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
