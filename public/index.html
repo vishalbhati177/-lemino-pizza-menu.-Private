@@ -360,8 +360,9 @@
       <div class="location-status" id="locationStatus"></div>
     </div>
 
-    <input class="order-field" id="customerName" type="text" placeholder="Your Name">
-    <input class="order-field" id="customerPhone" type="tel" placeholder="Phone Number">
+    <input class="order-field" id="customerName" type="text" placeholder="Your Name" maxlength="60">
+    <input class="order-field" id="customerPhone" type="tel" placeholder="10-digit Mobile Number" maxlength="10" inputmode="numeric" pattern="[6-9][0-9]{9}">
+    <div id="phoneHint" style="font-size:.72rem; color:var(--gold-dim); margin:-6px 0 10px; min-height:14px;"></div>
 
     <div class="total-row"><span>Total</span><b id="totalPrice">₹0</b></div>
     <button class="whatsapp-btn" id="sendOrder">Send Order on WhatsApp</button>
@@ -689,6 +690,21 @@ function updateOrderTypeUI(){
 document.querySelectorAll('input[name=orderType]').forEach(r => r.addEventListener('change', updateOrderTypeUI));
 updateOrderTypeUI();
 
+// ---------- Phone number: digits only, live validity hint ----------
+const phoneInput = document.getElementById('customerPhone');
+const phoneHint = document.getElementById('phoneHint');
+const PHONE_PATTERN = /^[6-9]\d{9}$/;
+phoneInput.addEventListener('input', () => {
+  phoneInput.value = phoneInput.value.replace(/\D/g, '').slice(0, 10); // digits only, max 10
+  if(phoneInput.value.length === 0){
+    phoneHint.textContent = '';
+  } else if(PHONE_PATTERN.test(phoneInput.value)){
+    phoneHint.textContent = '✓ Looks good';
+  } else {
+    phoneHint.textContent = `${phoneInput.value.length}/10 digits — must start with 6-9`;
+  }
+});
+
 // ---------- Auto-fill table number from QR code (?table=5 in the URL) ----------
 const urlTable = new URLSearchParams(window.location.search).get('table');
 if(urlTable){
@@ -746,6 +762,10 @@ document.getElementById('sendOrder').addEventListener('click', async () => {
     alert('Please share your location or type your delivery address.');
     return;
   }
+  if(!PHONE_PATTERN.test(phone)){
+    alert('Please enter a valid 10-digit mobile number (starting with 6-9).');
+    return;
+  }
 
   const total = entries.reduce((a,i) => a + i.qty*i.price, 0);
   const mapsLink = deliveryCoords ? `https://maps.google.com/?q=${deliveryCoords.lat},${deliveryCoords.lng}` : '';
@@ -757,16 +777,28 @@ document.getElementById('sendOrder').addEventListener('click', async () => {
     location: orderType === 'delivery' ? deliveryCoords : null,
     customerName: name,
     customerPhone: phone,
-    items: entries.map(it => ({ name: it.name, size: it.size, qty: it.qty, price: it.price })),
+    items: entries.map((it) => {
+      const key = Object.keys(cart).find(k => cart[k] === it);
+      return { id: key, name: it.name, size: it.size, qty: it.qty, price: it.price };
+    }),
     total
   };
 
   // Save to backend so it shows up in the admin Orders list
   try{
-    await fetch('/api/orders', {
+    const res = await fetch('/api/orders', {
       method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(order)
     });
-  }catch(err){ console.error('Could not save order to backend', err); }
+    if(!res.ok){
+      const err = await res.json().catch(() => ({}));
+      alert(err.error || 'Could not place order. Please try again or call us directly.');
+      return;
+    }
+  }catch(err){
+    console.error('Could not save order to backend', err);
+    alert('Could not reach the server. Please check your internet connection and try again.');
+    return;
+  }
 
   // Build WhatsApp message
   let msg = 'Hello Lemino Pizza, I would like to order:%0A%0A';
