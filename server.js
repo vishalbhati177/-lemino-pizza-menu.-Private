@@ -35,6 +35,25 @@ app.use(express.json({ limit: '2mb' }));
 app.use('/uploads', express.static(UPLOADS_DIR));
 app.use(express.static(path.join(__dirname, 'public'))); // serves index.html + admin.html
 
+// ---------- Admin password protection ----------
+// Set ADMIN_PASSWORD in Render → your service → Environment tab.
+// admin.html sends it back in the "x-admin-password" header on every request.
+if (!process.env.ADMIN_PASSWORD) {
+  console.warn('⚠️  ADMIN_PASSWORD not set — the admin panel is currently UNPROTECTED. Set it in your environment variables.');
+}
+function requireAdminAuth(req, res, next) {
+  const required = process.env.ADMIN_PASSWORD;
+  if (!required) return next(); // no password configured yet — allow (with the warning above)
+  const provided = req.headers['x-admin-password'];
+  if (provided && provided === required) return next();
+  return res.status(401).json({ error: 'Incorrect or missing admin password' });
+}
+
+// Lets admin.html check a password without needing any other data back
+app.get('/api/admin/verify', requireAdminAuth, (req, res) => {
+  res.json({ ok: true });
+});
+
 // ---------- helpers ----------
 function readMenu() {
   return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
@@ -100,7 +119,7 @@ app.get('/api/theme', (req, res) => {
   res.json(readTheme());
 });
 
-app.put('/api/theme', (req, res) => {
+app.put('/api/theme', requireAdminAuth, (req, res) => {
   const current = readTheme();
   const updated = { ...current, ...req.body };
   writeTheme(updated);
@@ -109,23 +128,80 @@ app.put('/api/theme', (req, res) => {
 
 // ---- Orders ----
 
-// Create a new order (called by the customer-facing menu)
+const PHONE_PATTERN = /^[6-9]\d{9}$/;
+
+// Simple in-memory rate limit: max 5 orders per phone number per 10 minutes.
+// (Resets if the server restarts — fine for spam prevention, not meant to be perfectly precise.)
+const orderRateLimit = new Map(); // phone -> [timestamps]
+function isRateLimited(phone) {
+  const now = Date.now();
+  const windowMs = 10 * 60 * 1000;
+  const timestamps = (orderRateLimit.get(phone) || []).filter(t => now - t < windowMs);
+  timestamps.push(now);
+  orderRateLimit.set(phone, timestamps);
+  return timestamps.length > 5;
+}
+
+// Create a new order (called by the customer-facing menu) — stays PUBLIC, no auth
 app.post('/api/orders', (req, res) => {
   const { orderType, tableNumber, address, location, customerName, customerPhone, items, total } = req.body;
-  if (!orderType || !items || !items.length) {
-    return res.status(400).json({ error: 'orderType and items are required' });
+
+  if (!orderType || !['dinein', 'delivery'].includes(orderType)) {
+    return res.status(400).json({ error: 'orderType must be dinein or delivery' });
   }
+  if (!Array.isArray(items) || items.length === 0 || items.length > 50) {
+    return res.status(400).json({ error: 'items must be a non-empty list (max 50)' });
+  }
+  if (!PHONE_PATTERN.test(customerPhone || '')) {
+    return res.status(400).json({ error: 'A valid 10-digit mobile number is required' });
+  }
+  if (orderType === 'dinein' && !/^\d{1,4}$/.test(String(tableNumber || ''))) {
+    return res.status(400).json({ error: 'A valid table number is required' });
+  }
+  if (customerName && customerName.length > 60) {
+    return res.status(400).json({ error: 'Name is too long' });
+  }
+  if (address && address.length > 200) {
+    return res.status(400).json({ error: 'Address is too long' });
+  }
+  if (isRateLimited(customerPhone)) {
+    return res.status(429).json({ error: 'Too many orders from this number recently. Please wait a few minutes and try again, or call the restaurant directly.' });
+  }
+
   const orders = readOrders();
+
+  // Recompute prices from the authoritative menu — never trust price from the client.
+  const menu = readMenu();
+  function findMenuItem(itemId) {
+    for (const cat of menu) {
+      const it = cat.items.find(i => i.id === itemId);
+      if (it) return it;
+    }
+    return null;
+  }
+
+  const verifiedItems = items.slice(0, 50).map(it => {
+    const menuItem = findMenuItem(it.id);
+    const qty = Math.max(1, Math.min(50, Number(it.qty) || 1));
+    if (menuItem) {
+      // trusted: real price/name/size from menu.json, client cannot alter these
+      return { name: menuItem.name, size: menuItem.size || '', qty, price: menuItem.price };
+    }
+    // fallback (e.g. item was deleted from the menu after being added to cart) — price locked to 0, flagged
+    return { name: String(it.name || 'Unknown item').slice(0, 100), size: String(it.size || '').slice(0, 30), qty, price: 0, unverified: true };
+  });
+  const verifiedTotal = verifiedItems.reduce((sum, it) => sum + it.qty * it.price, 0);
+
   const order = {
     id: Date.now().toString(36) + '-' + crypto.randomBytes(3).toString('hex'),
     orderType,
-    tableNumber: tableNumber || '',
-    address: address || '',
+    tableNumber: orderType === 'dinein' ? String(tableNumber).slice(0, 4) : '',
+    address: orderType === 'delivery' ? String(address || '').slice(0, 200) : '',
     location: location || null,
-    customerName: customerName || '',
-    customerPhone: customerPhone || '',
-    items,
-    total: Number(total) || 0,
+    customerName: String(customerName || '').slice(0, 60),
+    customerPhone,
+    items: verifiedItems,
+    total: verifiedTotal,
     status: 'new',
     createdAt: new Date().toISOString()
   };
@@ -134,13 +210,13 @@ app.post('/api/orders', (req, res) => {
   res.status(201).json(order);
 });
 
-// List all orders (used by the admin panel)
-app.get('/api/orders', (req, res) => {
+// List all orders (used by the admin panel) — protected, contains customer phone/address
+app.get('/api/orders', requireAdminAuth, (req, res) => {
   res.json(readOrders());
 });
 
 // Update an order's status (e.g. new -> preparing -> done)
-app.put('/api/orders/:orderId', (req, res) => {
+app.put('/api/orders/:orderId', requireAdminAuth, (req, res) => {
   const orders = readOrders();
   const order = orders.find(o => o.id === req.params.orderId);
   if (!order) return res.status(404).json({ error: 'order not found' });
@@ -150,7 +226,7 @@ app.put('/api/orders/:orderId', (req, res) => {
 });
 
 // Delete an order
-app.delete('/api/orders/:orderId', (req, res) => {
+app.delete('/api/orders/:orderId', requireAdminAuth, (req, res) => {
   let orders = readOrders();
   const exists = orders.some(o => o.id === req.params.orderId);
   if (!exists) return res.status(404).json({ error: 'order not found' });
@@ -162,7 +238,7 @@ app.delete('/api/orders/:orderId', (req, res) => {
 // ---- Categories ----
 
 // Add a category
-app.post('/api/categories', (req, res) => {
+app.post('/api/categories', requireAdminAuth, (req, res) => {
   const { title, desc } = req.body;
   if (!title) return res.status(400).json({ error: 'title is required' });
   const menu = readMenu();
@@ -176,7 +252,7 @@ app.post('/api/categories', (req, res) => {
 });
 
 // Edit a category (title/desc)
-app.put('/api/categories/:catId', (req, res) => {
+app.put('/api/categories/:catId', requireAdminAuth, (req, res) => {
   const menu = readMenu();
   const cat = menu.find(c => c.id === req.params.catId);
   if (!cat) return res.status(404).json({ error: 'category not found' });
@@ -188,7 +264,7 @@ app.put('/api/categories/:catId', (req, res) => {
 });
 
 // Delete a category
-app.delete('/api/categories/:catId', (req, res) => {
+app.delete('/api/categories/:catId', requireAdminAuth, (req, res) => {
   let menu = readMenu();
   const exists = menu.some(c => c.id === req.params.catId);
   if (!exists) return res.status(404).json({ error: 'category not found' });
@@ -200,7 +276,7 @@ app.delete('/api/categories/:catId', (req, res) => {
 // ---- Items ----
 
 // Add an item to a category
-app.post('/api/categories/:catId/items', (req, res) => {
+app.post('/api/categories/:catId/items', requireAdminAuth, (req, res) => {
   const menu = readMenu();
   const cat = menu.find(c => c.id === req.params.catId);
   if (!cat) return res.status(404).json({ error: 'category not found' });
@@ -216,7 +292,7 @@ app.post('/api/categories/:catId/items', (req, res) => {
 });
 
 // Edit an item (name/size/price/desc/image URL)
-app.put('/api/categories/:catId/items/:itemId', (req, res) => {
+app.put('/api/categories/:catId/items/:itemId', requireAdminAuth, (req, res) => {
   const menu = readMenu();
   const cat = menu.find(c => c.id === req.params.catId);
   if (!cat) return res.status(404).json({ error: 'category not found' });
@@ -233,7 +309,7 @@ app.put('/api/categories/:catId/items/:itemId', (req, res) => {
 });
 
 // Delete an item
-app.delete('/api/categories/:catId/items/:itemId', (req, res) => {
+app.delete('/api/categories/:catId/items/:itemId', requireAdminAuth, (req, res) => {
   const menu = readMenu();
   const cat = menu.find(c => c.id === req.params.catId);
   if (!cat) return res.status(404).json({ error: 'category not found' });
@@ -245,7 +321,7 @@ app.delete('/api/categories/:catId/items/:itemId', (req, res) => {
 });
 
 // Upload / replace an item's photo. Field name: "photo"
-app.post('/api/categories/:catId/items/:itemId/photo', upload.single('photo'), async (req, res) => {
+app.post('/api/categories/:catId/items/:itemId/photo', requireAdminAuth, upload.single('photo'), async (req, res) => {
   if (!CLOUDINARY_READY) {
     return res.status(500).json({ error: 'Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET as environment variables.' });
   }
