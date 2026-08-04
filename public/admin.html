@@ -50,6 +50,24 @@
   .order-actions button{font-size:.72rem; padding:6px 10px;}
   .order-total{font-weight:700; color:var(--gold-light);}
 
+  #loginGate{
+    position:fixed; inset:0; background:var(--maroon-deep); z-index:999;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  #loginGate .box{
+    background:var(--maroon); border:1px solid rgba(201,162,74,.35); border-radius:10px;
+    padding:32px; max-width:340px; width:100%; text-align:center;
+  }
+  #loginGate h2{color:var(--gold-light); font-size:1.2rem; margin-bottom:6px;}
+  #loginGate p{opacity:.7; font-size:.82rem; margin-bottom:18px;}
+  #loginGate input{
+    width:100%; padding:11px 12px; border-radius:6px; border:1px solid rgba(201,162,74,.35);
+    background:rgba(0,0,0,.25); color:var(--cream); font-size:.9rem; margin-bottom:12px;
+  }
+  #loginGate button{width:100%;}
+  #loginError{color:#ff8a7a; font-size:.78rem; min-height:16px; margin-top:8px;}
+  #adminApp{display:none;}
+
   @media (max-width: 700px){
     body{padding:14px;}
     h1{font-size:1.2rem;}
@@ -83,6 +101,18 @@
 </style>
 </head>
 <body>
+
+<div id="loginGate">
+  <div class="box">
+    <h2>🔒 Admin Login</h2>
+    <p>Enter the admin password to manage your menu.</p>
+    <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
+    <button id="loginBtn">Login</button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<div id="adminApp">
 
 <h1>Lemino Pizza — Menu Admin</h1>
 <div class="sub">Edit items, prices, and photos. Changes save automatically to the backend.</div>
@@ -121,10 +151,57 @@
 
 <div class="save-hint" id="saveHint">Saved ✓</div>
 
+</div><!-- /#adminApp -->
+
 <script>
 const API = '';
 const catsEl = document.getElementById('categories');
 const saveHint = document.getElementById('saveHint');
+
+// ---------- Admin password gate ----------
+let ADMIN_PW = localStorage.getItem('adminPassword') || '';
+
+// Every fetch() call in this file automatically sends the saved password.
+const _origFetch = window.fetch.bind(window);
+window.fetch = (url, opts = {}) => {
+  opts.headers = { ...(opts.headers || {}), 'x-admin-password': ADMIN_PW };
+  return _origFetch(url, opts);
+};
+
+const loginGate = document.getElementById('loginGate');
+const adminApp = document.getElementById('adminApp');
+const loginError = document.getElementById('loginError');
+
+async function tryUnlock(password){
+  ADMIN_PW = password;
+  const res = await fetch('/api/admin/verify');
+  if(res.ok){
+    localStorage.setItem('adminPassword', password);
+    loginGate.style.display = 'none';
+    adminApp.style.display = 'block';
+    return true;
+  }
+  ADMIN_PW = '';
+  localStorage.removeItem('adminPassword');
+  return false;
+}
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const pw = document.getElementById('loginPassword').value;
+  const ok = await tryUnlock(pw);
+  if(!ok) loginError.textContent = 'Incorrect password. Try again.';
+});
+document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+// If we have a saved password from a previous visit, try it silently.
+(async () => {
+  if(ADMIN_PW){
+    const ok = await tryUnlock(ADMIN_PW);
+    if(!ok) loginError.textContent = 'Session expired — please log in again.';
+  }
+})();
 
 function flash(){
   saveHint.classList.add('show');
@@ -347,6 +424,12 @@ setInterval(async () => {
 }, 20000);
 fetch('/api/orders').then(r => r.json()).then(checkNewOrdersBadge).catch(() => {});
 
+function escapeHtml(s){
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function renderOrders(orders){
   if(orders.length === 0){
     ordersList.innerHTML = '<div style="opacity:.6; padding:20px 0; text-align:center;">No orders yet.</div>';
@@ -355,26 +438,28 @@ function renderOrders(orders){
   ordersList.innerHTML = orders.map(o => {
     const time = new Date(o.createdAt).toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
     const badgeClass = o.status === 'new' ? 'badge-new' : o.status === 'preparing' ? 'badge-preparing' : 'badge-done';
-    const itemsHtml = o.items.map(it => `${it.name}${it.size ? ' ('+it.size+')' : ''} × ${it.qty} — ₹${it.qty*it.price}`).join('<br>');
+    const itemsHtml = o.items.map(it => `${escapeHtml(it.name)}${it.size ? ' ('+escapeHtml(it.size)+')' : ''} × ${Number(it.qty)||0} — ₹${(Number(it.qty)||0)*(Number(it.price)||0)}`).join('<br>');
     let locationHtml = '';
     if(o.orderType === 'dinein'){
-      locationHtml = `Table #${o.tableNumber}`;
+      locationHtml = `Table #${escapeHtml(o.tableNumber)}`;
     } else {
       const parts = [];
-      if(o.address) parts.push(o.address);
-      if(o.location) parts.push(`<a href="https://maps.google.com/?q=${o.location.lat},${o.location.lng}" target="_blank" style="color:var(--gold-light);">📍 View on map</a>`);
+      if(o.address) parts.push(escapeHtml(o.address));
+      if(o.location && typeof o.location.lat === 'number' && typeof o.location.lng === 'number'){
+        parts.push(`<a href="https://maps.google.com/?q=${o.location.lat},${o.location.lng}" target="_blank" style="color:var(--gold-light);">📍 View on map</a>`);
+      }
       locationHtml = parts.join(' · ') || '—';
     }
     return `
-      <div class="order-card" data-order="${o.id}">
+      <div class="order-card" data-order="${escapeHtml(o.id)}">
         <div class="order-card-head">
           <div>
-            <span class="order-badge ${badgeClass}">${o.status}</span>
+            <span class="order-badge ${badgeClass}">${escapeHtml(o.status)}</span>
             <span style="margin-left:8px; font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; opacity:.8;">${o.orderType === 'dinein' ? 'Dine-in' : 'Delivery'}</span>
           </div>
-          <span class="order-total">₹${o.total}</span>
+          <span class="order-total">₹${Number(o.total)||0}</span>
         </div>
-        <div class="order-meta">${time} ${o.customerName ? '· ' + o.customerName : ''} ${o.customerPhone ? '· ' + o.customerPhone : ''}</div>
+        <div class="order-meta">${time} ${o.customerName ? '· ' + escapeHtml(o.customerName) : ''} ${o.customerPhone ? '· ' + escapeHtml(o.customerPhone) : ''}</div>
         <div class="order-meta"><b>${locationHtml}</b></div>
         <div class="order-items">${itemsHtml}</div>
         <div class="order-actions">
